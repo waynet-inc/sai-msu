@@ -1,24 +1,21 @@
-from skyfield.api import load
 from tkinter.ttk import *
 from tkinter import *
-from satnum import satnum
+from satcounter import satnum as sn
 
 
 def count(start_time, exposition, eq_cords, field_of_view):
     res_bar['value'] = 0
     window.update_idletasks()
-    ts = load.timescale()
     date = start_time.get().split('-')
-    date = list(map(int, date))
-    start_time = ts.utc(*date)
+    start_time = list(map(int, date))
     exposition = int(exposition.get())
-    field_of_view = int(field_of_view.get())
-    eq_cords = eq_cords.get().split(' ')
+    field_of_view = float(field_of_view.get())
+    eq_cords = eq_cords.get().split(', ')
     eq_cords = list(map(float, eq_cords))
 
     res_bar['value'] = 50
     window.update_idletasks()
-    answer = satnum(start_time, exposition, eq_cords, field_of_view)
+    answer = sn.satnum(start_time, exposition, eq_cords, field_of_view)
     result.config(text=str(answer))
     res_bar['value'] = 100
     window.update_idletasks()
@@ -38,22 +35,22 @@ start = Entry(window, width=42)
 start.insert(END, "2020-12-14-18-00-00")
 start.grid(column=1, row=1)
 
-exposition_label = Label(window, text="Выдержка: (в секундах)", bg="white")
+exposition_label = Label(window, text="Выдержка: (в миллисекундах)", bg="white")
 exposition_label.grid(column=0, row=2)
 exp = Entry(window, width=42)
-exp.insert(END, "10")
+exp.insert(END, "1500")
 exp.grid(column=1, row=2)
 
 fov_label = Label(window, text="Поле зрения телескопа: (в минутах)", bg="white")
 fov_label.grid(column=0, row=3)
 fov = Entry(window, width=42)
-fov.insert(END, "40")
+fov.insert(END, "600")
 fov.grid(column=1, row=3)
 
-center_label = Label(window, text="Координаты центра изображение: (Геоцентрические)", bg="white")
+center_label = Label(window, text="Координаты центра изображение: (Прямое восхождение, склонение)", bg="white")
 center_label.grid(column=0, row=4)
 center = Entry(window, width=42)
-center.insert(END, "4741.54541529 -2257.71642333 4505.71410004")
+center.insert(END, "45.0, 45.0")
 center.grid(column=1, row=4)
 
 cnt_label = Label(window, text="Посчитать спутники:", bg="white")
