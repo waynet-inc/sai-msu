@@ -8,7 +8,7 @@ class GeneralTests(unittest.TestCase):
         exp = 1500
         cords = [45.0, 45.0]
         field_of_view = 600
-        self.assertEqual(sn.satnum(date, exp, cords, field_of_view), 4, "Wrong Answer")
+        self.assertEqual(sn.satnum(date, exp, cords, field_of_view), 2, "Wrong Answer")
 
     def test_res1(self):
         date = [2020, 12, 27, 18, 00, 00]

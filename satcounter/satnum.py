@@ -14,8 +14,15 @@ Function returns an integer - number of satellites in the frame of KMO SAI teles
 from skyfield.api import load
 from skyfield.units import Angle
 from datetime import timedelta
+import math as m
+from cachetools import cached, TTLCache
 
 __all__ = ('satnum',)
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=86400))
+def get_sat(url):
+    return load.tle_file(url)
 
 
 def satnum(start_time, exposition, eq_cords, field_of_view):
@@ -41,7 +48,7 @@ def satnum(start_time, exposition, eq_cords, field_of_view):
     >>> eq_cords = [45.0, 45.0]
     >>> field_of_view = 600
     >>> satnum.satnum(start_time, exposition, eq_cords, field_of_view)
-    1
+    4
     """
     if not isinstance(start_time, list):
         raise TypeError("incorrect start time")
@@ -57,21 +64,25 @@ def satnum(start_time, exposition, eq_cords, field_of_view):
         raise ValueError("incorrect field of view")
 
     url = "https://celestrak.com/NORAD/elements/starlink.txt"
-    satellites = load.tle_file(url)
+    satellites = get_sat(url)
+
     sat_counter = 0
     ts = load.timescale()
     start_time = ts.utc(*start_time)
     eq_cords = [Angle(degrees=eq_cords[0], preference="hours"), Angle(degrees=eq_cords[1])]
     fov_h = Angle(degrees=field_of_view/60, preference="hours")
     fov_d = Angle(degrees=field_of_view/60)
+    cos0 = m.cos(m.radians(eq_cords[1].degrees))
 
     for satellite in satellites:
         for n in range(exposition):
             time = ts.utc(start_time.utc_datetime() + timedelta(seconds=n/1000))
             ra, dec, dist = satellite.at(time).radec()
-            if abs(eq_cords[0].hours - ra.hours) > (exposition/1000)*fov_h.hours or abs(eq_cords[1].degrees - dec.degrees) > (exposition/1000)*fov_d.degrees:
+            cos1 = m.cos(m.radians(dec.degrees))
+
+            if abs(eq_cords[0].hours * cos0 - ra.hours * cos1) > (exposition/1000)*fov_h.hours or abs(eq_cords[1].degrees - dec.degrees) > (exposition/1000)*fov_d.degrees:
                 break
-            if abs(eq_cords[0].hours - ra.hours) <= fov_h.hours/2 and abs(eq_cords[1].degrees - dec.degrees) <= fov_d.degrees/2:
+            if abs(eq_cords[0].hours * cos0 - ra.hours * cos1) <= fov_h.hours/2 and abs(eq_cords[1].degrees - dec.degrees) <= fov_d.degrees/2:
                 sat_counter += 1
                 break
 
