@@ -73,6 +73,8 @@ def satnum(start_time, exposition, eq_cords, field_of_view):
     fov_h = Angle(degrees=field_of_view/60, preference="hours")
     fov_d = Angle(degrees=field_of_view/60)
     cos0 = m.cos(m.radians(eq_cords[1].degrees))
+    max_ang_vel = 1
+    max_ang_vel_s = max_ang_vel * 3600 / 15
 
     for satellite in satellites:
         for n in range(exposition):
@@ -80,10 +82,7 @@ def satnum(start_time, exposition, eq_cords, field_of_view):
             ra, dec, dist = satellite.at(time).radec()
             cos1 = m.cos(m.radians(dec.degrees))
 
-            w = 0.83
-            ws = w*3600
-
-            if abs(eq_cords[0].hours * cos0 - ra.hours * cos1) > (exposition/1000)*ws or abs(eq_cords[1].degrees - dec.degrees) > (exposition/1000)*w:
+            if abs(eq_cords[0].hours * cos0 - ra.hours * cos1) > (exposition/1000)*max_ang_vel_s or abs(eq_cords[1].degrees - dec.degrees) > (exposition/1000)*max_ang_vel:
                 break
             if abs(eq_cords[0].hours * cos0 - ra.hours * cos1) <= fov_h.hours/2 and abs(eq_cords[1].degrees - dec.degrees) <= fov_d.degrees/2:
                 sat_counter += 1
